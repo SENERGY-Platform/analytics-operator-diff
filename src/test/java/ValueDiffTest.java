@@ -15,8 +15,8 @@
  */
 
 import com.jayway.jsonpath.JsonPath;
-import org.infai.seits.sepl.operators.Builder;
-import org.infai.seits.sepl.operators.Message;
+import org.infai.ses.senergy.operators.Builder;
+import org.infai.ses.senergy.operators.Message;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -46,7 +46,7 @@ public class ValueDiffTest {
                 )));
         Message message = new Message(builder.formatMessage(ob1.toString()));
         message.setConfig(config.toString());
-        valueDiff.config(message);
+        valueDiff.configMessage(message);
         valueDiff.run(message);
         message.setMessage(builder.formatMessage(ob2.toString()));
         valueDiff.run(message);

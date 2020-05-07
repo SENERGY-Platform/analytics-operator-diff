@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import org.infai.seits.sepl.operators.Message;
-import org.infai.seits.sepl.operators.OperatorInterface;
 
-public class ValueDiff implements OperatorInterface {
+import org.infai.ses.senergy.operators.BaseOperator;
+import org.infai.ses.senergy.operators.Message;
+
+public class ValueDiff extends BaseOperator {
 
     private Double previousValue;
 
@@ -35,7 +36,7 @@ public class ValueDiff implements OperatorInterface {
     }
 
     @Override
-    public void config(Message message) {
+    public void configMessage(Message message) {
         message.addInput("value");
     }
 }
