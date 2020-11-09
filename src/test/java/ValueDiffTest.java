@@ -14,42 +14,41 @@
  * limitations under the License.
  */
 
-import com.jayway.jsonpath.JsonPath;
-import org.infai.ses.senergy.operators.Builder;
+import org.infai.ses.senergy.models.DeviceMessageModel;
+import org.infai.ses.senergy.models.MessageModel;
+import org.infai.ses.senergy.operators.Config;
+import org.infai.ses.senergy.operators.Helper;
 import org.infai.ses.senergy.operators.Message;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.infai.ses.senergy.testing.utils.JSONHelper;
+import org.infai.ses.senergy.utils.ConfigProvider;
 import org.junit.Test;
 import org.junit.Assert;
 
 
 public class ValueDiffTest {
 
-    static ValueDiff valueDiff;
-    protected JSONObject ob1 = new JSONObject();
-    protected JSONObject ob2 = new JSONObject();
-
-    public ValueDiffTest (){
-        ob1.put("device_id", "1").put("value", new JSONObject().put("reading", new JSONObject().put("value", new Double(5))));
-        ob2.put("device_id", "1").put("value", new JSONObject().put("reading", new JSONObject().put("value", new Double(10))));
-    }
+    private ValueDiff testOperator;
+    private final org.json.simple.JSONArray messages = new JSONHelper().parseFile("messages.json");
+    private final String configString = new JSONHelper().parseFile("config.json").toString();
 
     @Test
     public void testRun(){
-        valueDiff  = new ValueDiff();
-        Builder builder = new Builder("1", "1");
-        JSONObject config = new JSONObject().put("inputTopics", new JSONArray().put(new JSONObject().put("Name","test")
-                .put("FilterType", "DeviceId")
-                .put("FilterValue", "1")
-                .put("Mappings", new JSONArray().put(
-                        new JSONObject().put("Source", "value.reading.value").put("Dest","value"))
-                )));
-        Message message = new Message(builder.formatMessage(ob1.toString()));
-        message.setConfig(config.toString());
-        valueDiff.configMessage(message);
-        valueDiff.run(message);
-        message.setMessage(builder.formatMessage(ob2.toString()));
-        valueDiff.run(message);
-        Assert.assertEquals(new Double(5.0), JsonPath.parse(message.getMessageString()).read("$.analytics.diff"));
+        Config config = new Config(configString);
+        String topicName = config.getInputTopicsConfigs().get(0).getName();
+        ConfigProvider.setConfig(config);
+        Message message = new Message();
+        MessageModel model =  new MessageModel();
+        testOperator = new ValueDiff();
+        testOperator.configMessage(message);
+        int index = 0;
+        Double expected []  = new Double []{0.0, 5.0};
+        for(Object msg : messages){
+            DeviceMessageModel deviceMessageModel = JSONHelper.getObjectFromJSONString(msg.toString(), DeviceMessageModel.class);
+            assert deviceMessageModel != null;
+            model.putMessage(topicName, Helper.deviceToInputMessageModel(deviceMessageModel, topicName));
+            message.setMessage(model);
+            testOperator.run(message);
+            Assert.assertEquals(expected[index++], message.getMessage().getOutputMessage().getAnalytics().get("diff"));
+        }
     }
 }

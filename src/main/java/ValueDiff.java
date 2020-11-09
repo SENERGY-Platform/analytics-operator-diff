@@ -15,6 +15,7 @@
  */
 
 
+import org.infai.ses.senergy.exceptions.NoValueException;
 import org.infai.ses.senergy.operators.BaseOperator;
 import org.infai.ses.senergy.operators.Message;
 
@@ -24,7 +25,13 @@ public class ValueDiff extends BaseOperator {
 
     @Override
     public void run(Message message) {
-        Double currentValue = message.getInput("value").getValue();
+        Double currentValue = 0.0;
+        try {
+            currentValue = message.getInput("value").getValue();
+        } catch (NoValueException e) {
+            System.out.println(e.getMessage());
+            System.out.println(message.getMessage().getMessages());
+        }
         Double diff;
         if (previousValue != null) {
             diff = currentValue - previousValue;
@@ -36,7 +43,8 @@ public class ValueDiff extends BaseOperator {
     }
 
     @Override
-    public void configMessage(Message message) {
+    public Message configMessage(Message message) {
         message.addInput("value");
+        return message;
     }
 }
