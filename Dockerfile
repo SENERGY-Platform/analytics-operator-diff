@@ -1,5 +1,12 @@
-FROM maven:3.6-jdk-11-slim
-ADD . /usr/src/app
+FROM maven:3.6-openjdk-11-slim as builder
+ADD src /usr/src/app/src
+ADD pom.xml /usr/src/app
 WORKDIR /usr/src/app
 RUN mvn clean install
-CMD ["java","-jar","/usr/src/app/target/operator-value-diff-jar-with-dependencies.jar"]
+
+FROM openjdk:11-jre-slim
+LABEL org.opencontainers.image.source https://github.com/SENERGY-Platform/analytics-operator-diff
+ENV NAME value-diff
+COPY --from=builder /usr/src/app/target/operator-${NAME}-jar-with-dependencies.jar /opt/operator.jar
+ADD https://github.com/jmxtrans/jmxtrans-agent/releases/download/jmxtrans-agent-1.2.6/jmxtrans-agent-1.2.6.jar opt/jmxtrans-agent.jar
+CMD ["java","-jar","/opt/operator.jar"]
