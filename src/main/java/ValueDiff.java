@@ -27,7 +27,7 @@ public class ValueDiff extends BaseOperator {
     public void run(Message message) {
         Double currentValue = 0.0;
         try {
-            currentValue = message.getInput("value").getValue();
+            currentValue = message.getFlexInput("value").getValue();
         } catch (NoValueException e) {
             System.out.println(e.getMessage());
             System.out.println(message.getMessage().getMessages());
@@ -44,7 +44,7 @@ public class ValueDiff extends BaseOperator {
 
     @Override
     public Message configMessage(Message message) {
-        message.addInput("value");
+        message.addFlexInput("value");
         return message;
     }
 }
