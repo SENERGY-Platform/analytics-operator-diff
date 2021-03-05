@@ -17,6 +17,7 @@
 
 import org.infai.ses.senergy.exceptions.NoValueException;
 import org.infai.ses.senergy.operators.BaseOperator;
+import org.infai.ses.senergy.operators.FlexInput;
 import org.infai.ses.senergy.operators.Message;
 
 public class ValueDiff extends BaseOperator {
@@ -32,6 +33,15 @@ public class ValueDiff extends BaseOperator {
             System.out.println(e.getMessage());
             System.out.println(message.getMessage().getMessages());
         }
+        String timestamp = "";
+        FlexInput timestampInput = message.getFlexInput("timestamp");
+        if (timestampInput != null) { // required for backwards compatibility
+            try {
+                timestamp = message.getFlexInput("timestamp").getString();
+            } catch (NoValueException e) {
+                // ignore
+            }
+        }
         Double diff;
         if (previousValue != null) {
             diff = currentValue - previousValue;
@@ -40,11 +50,13 @@ public class ValueDiff extends BaseOperator {
         }
         previousValue = currentValue;
         message.output("diff", (Math.round(diff * 1000.0) / 1000.0));
+        message.output("timestamp", timestamp);
     }
 
     @Override
     public Message configMessage(Message message) {
         message.addFlexInput("value");
+        message.addFlexInput("timestamp");
         return message;
     }
 }
