@@ -19,10 +19,18 @@ import org.infai.ses.senergy.exceptions.NoValueException;
 import org.infai.ses.senergy.operators.BaseOperator;
 import org.infai.ses.senergy.operators.FlexInput;
 import org.infai.ses.senergy.operators.Message;
+import org.infai.ses.senergy.util.DateParser;
 
 public class ValueDiff extends BaseOperator {
 
     private Double previousValue;
+    private final long minIntervalSeconds;
+    private long intervalStartMillis;
+
+    public ValueDiff() {
+        super();
+        minIntervalSeconds = Long.parseLong(config.getConfigValue("min_interval_seconds", "0"));
+    }
 
     @Override
     public void run(Message message) {
@@ -35,19 +43,26 @@ public class ValueDiff extends BaseOperator {
         }
         String timestamp = "";
         FlexInput timestampInput = message.getFlexInput("timestamp");
+        long timestampMillis = 0;
         if (timestampInput != null) { // required for backwards compatibility
             try {
-                timestamp = message.getFlexInput("timestamp").getString();
+                timestamp = DateParser.parseDate(message.getFlexInput("timestamp").getString());
+                timestampMillis = DateParser.parseDateMills(timestamp);
             } catch (NoValueException e) {
                 // ignore
             }
         }
-        Double diff;
-        if (previousValue != null) {
-            diff = currentValue - previousValue;
-        } else {
-            diff = 0.0;
+        if (previousValue == null) {
+            intervalStartMillis = timestampMillis;
+            previousValue = currentValue;
+            return;
         }
+        if (timestampMillis < intervalStartMillis + (minIntervalSeconds * 1000)) {
+            // interval not complete
+            return;
+        }
+        double diff = currentValue - previousValue;
+        intervalStartMillis += timestampMillis;
         previousValue = currentValue;
         message.output("diff", (Math.round(diff * 1000.0) / 1000.0));
         message.output("timestamp", timestamp);

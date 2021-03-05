@@ -1,0 +1,23 @@
+{
+  "config": {
+    "input": "true",
+    "min_interval_seconds": "5"
+  },
+  "inputTopics": [
+    {
+      "Name": "test",
+      "FilterType": "DeviceId",
+      "FilterValue": "1,2",
+      "Mappings": [
+        {
+          "Dest": "value",
+          "Source": "value.reading.value"
+        },
+        {
+          "Dest": "timestamp",
+          "Source": "value.reading.timestamp"
+        }
+      ]
+    }
+  ]
+}
