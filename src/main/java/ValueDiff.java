@@ -62,7 +62,7 @@ public class ValueDiff extends BaseOperator {
             return;
         }
         double diff = currentValue - previousValue;
-        intervalStartMillis += timestampMillis;
+        intervalStartMillis = timestampMillis;
         previousValue = currentValue;
         message.output("diff", (Math.round(diff * 1000.0) / 1000.0));
         message.output("timestamp", timestamp);
